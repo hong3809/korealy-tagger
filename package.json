@@ -1,0 +1,16 @@
+{
+  "name": "korealy-tagger",
+  "version": "1.0.0",
+  "description": "Korealy 공급업체 제품 자동 태그 시스템",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "register-webhooks": "node registerWebhooks.js",
+    "tag-existing": "node testTag.js",
+    "tag-product": "node testTag.js"
+  },
+  "keywords": ["shopify", "webhook", "auto-tag", "korealy"],
+  "author": "",
+  "license": "ISC"
+}
