@@ -1,4 +1,5 @@
-require('dotenv').config();
+// dotenv: 로컬 개발 시에만 사용 (Railway는 환경변수 자동 주입)
+try { require('dotenv').config(); } catch(e) {}
 
 const express = require('express');
 const crypto  = require('crypto');
