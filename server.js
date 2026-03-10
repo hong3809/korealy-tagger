@@ -1,6 +1,3 @@
-// dotenv: 로컬 개발 시에만 사용 (Railway는 환경변수 자동 주입)
-try { require('dotenv').config(); } catch(e) {}
-
 const express = require('express');
 const crypto  = require('crypto');
 const axios   = require('axios');
@@ -16,25 +13,23 @@ const TARGET_VENDOR           = (process.env.TARGET_VENDOR || 'korealy').toLower
 
 // ── 원시 바디 보존 (HMAC 검증용) ─────────────────
 app.use(express.json({
-  verify: (req, _res, buf) => { req.rawBody = buf; }
+  verify: function(req, res, buf) { req.rawBody = buf; }
 }));
 
 // ── HMAC 검증 ────────────────────────────────────
 function verifyWebhook(req) {
   if (!SHOPIFY_WEBHOOK_SECRET) return true;
-  const hmac   = req.headers['x-shopify-hmac-sha256'];
-  if (!hmac)   return false;
-  const digest = crypto
-    .createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
-    .update(req.rawBody)
-    .digest('base64');
+  var hmac = req.headers['x-shopify-hmac-sha256'];
+  if (!hmac) return false;
+  var digest = crypto.createHmac('sha256', SHOPIFY_WEBHOOK_SECRET)
+    .update(req.rawBody).digest('base64');
   return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(digest));
 }
 
 // ── 태그 업데이트 ─────────────────────────────────
 async function updateProductTags(productId, tags) {
-  const url = 'https://' + SHOPIFY_STORE_URL + '/admin/api/2024-01/products/' + productId + '.json';
-  const res = await axios.put(url,
+  var url = 'https://' + SHOPIFY_STORE_URL + '/admin/api/2024-01/products/' + productId + '.json';
+  var res = await axios.put(url,
     { product: { id: productId, tags: tags.join(', ') } },
     { headers: { 'X-Shopify-Access-Token': SHOPIFY_ADMIN_API_TOKEN, 'Content-Type': 'application/json' } }
   );
@@ -43,13 +38,13 @@ async function updateProductTags(productId, tags) {
 
 // ── 공통 처리 ─────────────────────────────────────
 async function processProduct(product) {
-  const vendor = (product.vendor || '').toLowerCase();
+  var vendor = (product.vendor || '').toLowerCase();
   if (vendor !== TARGET_VENDOR) {
     console.log('[SKIP] Vendor: ' + product.vendor);
     return;
   }
-  console.log('[PROCESS] ' + product.title + ' (' + product.vendor + ')');
-  const tags = await generateTags(product, SHOPIFY_STORE_URL, SHOPIFY_ADMIN_API_TOKEN);
+  console.log('[PROCESS] ' + product.title);
+  var tags = await generateTags(product, SHOPIFY_STORE_URL, SHOPIFY_ADMIN_API_TOKEN);
   console.log('[TAGS] ' + tags.join(', '));
   await updateProductTags(product.id, tags);
   console.log('[DONE] 태그 업데이트 완료');
@@ -73,10 +68,9 @@ app.post('/webhooks/products/update', function(req, res) {
 });
 
 app.post('/tag-existing', async function(req, res) {
-  const authHeader = req.headers['x-admin-key'];
+  var authHeader = req.headers['x-admin-key'];
   if (authHeader !== process.env.ADMIN_KEY) return res.status(401).json({ error: 'Unauthorized' });
   res.json({ started: true });
-
   try {
     var url = 'https://' + SHOPIFY_STORE_URL + '/admin/api/2024-01/products.json?vendor=' + encodeURIComponent(TARGET_VENDOR) + '&limit=50&fields=id,title,vendor,product_type,tags,body_html';
     while (url) {
