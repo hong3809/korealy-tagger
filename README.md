@@ -22,3 +22,4 @@ PORT=3000
 npm install
 npm start
 ```
+# Railway 강제 재배포 트리거 Tue Mar 10 04:33:18 UTC 2026
